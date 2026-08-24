@@ -1034,6 +1034,7 @@ const OfflineTextInputBar = memo(forwardRef<OfflineTextInputHandle, {
                     onClick={() => { if (isOfflineGenerating) onStopGeneration(); else handleSubmit(); }}
                     disabled={!isOfflineGenerating && !isSpectator && !inputText.trim()}
                     className="ui-bare-btn text-[var(--c-text)]"
+                    style={{ zIndex: 9999, border: "1px solid red" }}
                     aria-label={isOfflineGenerating ? "停止线下生成" : "发送"}
                     title={isOfflineGenerating ? "停止线下生成" : "发送"}
                 >
