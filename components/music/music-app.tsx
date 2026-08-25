@@ -1501,7 +1501,8 @@ function MusicSettingsTab({ onBack, onSaved }: { onBack: () => void; onSaved: ()
     const [testResult, setTestResult] = useState<{ ok: boolean; message: string } | null>(null);
     const [testing, setTesting] = useState(false);
 
-    // QR login state
+    // QR & Cookie login state
+    const [cookieDraft, setCookieDraft] = useState("");
     const [qrImg, setQrImg] = useState<string | null>(null);
     const [qrKey, setQrKey] = useState<string | null>(null);
     const [qrStatus, setQrStatus] = useState<string>("");
@@ -1649,10 +1650,30 @@ function MusicSettingsTab({ onBack, onSaved }: { onBack: () => void; onSaved: ()
         setQrImg(null);
         setQrKey(null);
         setQrStatus("");
+        setCookieDraft("");
         setLoginNickname(null);
         clearNeteaseCookie();
         clearMusicCloudSyncData();
         onSaved();
+    };
+
+    const handleCookieSave = async () => {
+        const cookie = cookieDraft.trim();
+        if (!cookie) return;
+        saveNeteaseCookie(cookie);
+        setCookieDraft("");
+        const base = config.baseUrl.trim();
+        if (!base) return;
+        setQrStatus("验证 Cookie 中...");
+        const status = await checkLoginStatus(base);
+        if (status.loggedIn && status.nickname) {
+            setLoginNickname(status.nickname);
+            setQrStatus("Cookie 登录成功");
+            onSaved();
+        } else {
+            setQrStatus("Cookie 无效或已过期");
+            clearNeteaseCookie();
+        }
     };
 
     return (
@@ -1723,6 +1744,21 @@ function MusicSettingsTab({ onBack, onSaved }: { onBack: () => void; onSaved: ()
                         )}
 
                         {qrStatus && <div className="music-qr-status">{qrStatus}</div>}
+
+                        {!loginNickname && (
+                            <>
+                                <div className="music-settings-desc" style={{ marginTop: "16px", fontSize: "0.85em", color: "var(--c-music-sub)" }}>或者直接填入 Cookie (MUSIC_U 等字段)</div>
+                                <div className="music-settings-actions" style={{ marginTop: "8px", flexDirection: "column", gap: "8px" }}>
+                                    <input
+                                        className="music-settings-input"
+                                        placeholder="粘贴网易云 Cookie"
+                                        value={cookieDraft}
+                                        onChange={(e) => setCookieDraft(e.target.value)}
+                                    />
+                                    <button className="music-settings-btn" onClick={handleCookieSave} disabled={!cookieDraft.trim()}>保存 Cookie</button>
+                                </div>
+                            </>
+                        )}
                     </div>
                 )}
 
